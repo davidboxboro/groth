@@ -1,7 +1,7 @@
 package groth
 
 /*
-#cgo LDFLAGS: -O2 -flto -L. -lntl -lgmp -lboost_system  -lboost_filesystem -lpthread -lboost_regex -lboost_thread -lboost_context -lgomp -lshuffle
+#cgo LDFLAGS: -O2 -L. -lntl -lgmp -lboost_system  -lboost_filesystem -lpthread -lboost_regex -lboost_thread -lboost_context -lgomp -lshuffle
 
 #include "Utils.h"
 */
@@ -127,9 +127,9 @@ func (g Groth) EncryptVerify(ciphers []byte, proof []byte) bool {
 	return (int(cRet) == 1)
 }
 
-func (g Groth) Encrypt(secrets []byte, secretlen int, keyIndex int) (ciphers []byte, cipherlen int, groupelts []byte, groupeltlen int) {
+func (g Groth) Encrypt(secrets []byte, secretlen int, firstIndex int, lastIndex int) (ciphers []byte, cipherlen int, groupelts []byte, groupeltlen int) {
 	runtime.GC()
-	ciphers_, groupelts_, elt_size := __encrypt(secrets, secretlen, keyIndex)
+	ciphers_, groupelts_, elt_size := __encrypt(secrets, secretlen, firstIndex, lastIndex)
 	ciphers_bytes := []byte(ciphers_)
 	groupelts_bytes, elt_len := string_arr_to_byte_arr(groupelts_)
 	// log.WithFields(log.Fields{"len(ciphers)": len(ciphers_bytes)}).Info("C:Encrypt")
@@ -137,7 +137,7 @@ func (g Groth) Encrypt(secrets []byte, secretlen int, keyIndex int) (ciphers []b
 }
 
 //Encrypts byte array of messages
-func __encrypt(secrets []byte, secretlen int, keyIndex int) (ciphers string, groupelts []string, elm_size int) {
+func __encrypt(secrets []byte, secretlen int, firstIndex int, lastIndex int) (ciphers string, groupelts []string, elm_size int) {
 	var num_secrets int
 	num_secrets = len(secrets) / secretlen
 
@@ -152,7 +152,7 @@ func __encrypt(secrets []byte, secretlen int, keyIndex int) (ciphers string, gro
 	}
 
 	ptr := (*unsafe.Pointer)(unsafe.Pointer(cargs))
-	cCipher := C.encrypt(ptr, C.int(secretlen), C.int(num_secrets), C.int(keyIndex))
+	cCipher := C.encrypt2(ptr, C.int(secretlen), C.int(num_secrets), C.int(firstIndex), C.int(lastIndex))
 
 	var cLen C.int
 	var element_size C.int
@@ -371,7 +371,6 @@ func __prove(p unsafe.Pointer) (proof string, out_public_randoms string) {
 	var proof_len C.int
 	var public_randoms unsafe.Pointer
 	var public_randoms_len C.int
-
 	C.prove(p,
 		(**C.char)(unsafe.Pointer(&proof_out)), (*C.int)(unsafe.Pointer(&proof_len)),
 		(**C.char)(unsafe.Pointer(&public_randoms)), (*C.int)(unsafe.Pointer(&public_randoms_len)))
@@ -390,7 +389,7 @@ func (g Groth) Verify(proof []byte, ciphersin []byte, ciphersout []byte, keyInde
 	result := __verify(keyIndex, string(proof), string(ciphersin), string(ciphersout), public_randoms)
 	// runtime.GC()
 	memstat("verify end")
-	
+
 	return result
 }
 

@@ -32,7 +32,7 @@ func TestEncrypt(t *testing.T) {
 		}
 	}
 }
-
+/*
 func TestEncryptVerified(t *testing.T) {
 	var g Groth
 
@@ -68,12 +68,12 @@ func TestEncryptVerified(t *testing.T) {
 		t.Errorf("failed to verify proof of knowledge")
 	}
 }
-
+*/
 func TestEndToEnd(t *testing.T) {
 	start := time.Now()
 
 	var secrets []byte
-	secrets = make([]byte, 100000, 100000)
+	secrets = make([]byte, 2)
 	var i int = 0
 	for i < len(secrets) {
 		secrets[i] = byte(i)
@@ -91,6 +91,7 @@ func TestEndToEnd(t *testing.T) {
 
 	fmt.Println("starting shuffle.")
 	shuffleStart := time.Now()
+	fmt.Println(len(ciphers), ciphers_len)
 	ciphers_outStr, _, handle := g.Shuffle(ciphers, ciphers_len, 1)
 	shuffleTime := time.Since(shuffleStart)
 	fmt.Println("Shuffle time: ", shuffleTime)

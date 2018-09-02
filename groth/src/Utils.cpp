@@ -1,5 +1,8 @@
 #include "Utils.h"
 
+#include "Mod_p.h"
+#include "ElGammal.h"
+
 #include "CipherTable.h"
 #include "Globals.h"
 #include "Functions.h"
@@ -220,6 +223,30 @@ void* encrypt(void** in_secrets, int secretLen, int arrayLen, int keyIndex) {
 	ret->set_dimentions(m, num_cols);
 	delete my_secrets;
 	delete_key(elgammal);
+	return ret;
+}
+
+// david's new enc func
+void* encrypt2(void** in_secrets, int secretLen, int arrayLen, int firstIndex, int lastIndex) {
+	init();
+	const unsigned char** secrects = (const unsigned char**) in_secrets; 
+
+	ElGammal* elgammal1 = (ElGammal*)create_pub_key(firstIndex);
+	ElGammal* elgammal2 = (ElGammal*)create_pub_key(lastIndex);
+	Mod_p* prod = new Mod_p();
+	prod->mult(*prod, elgammal1->get_pk(), elgammal2->get_pk()); 
+	ElGammal* elgammal = new ElGammal();
+	elgammal->set_pk(*prod);
+
+	int num_cols = Functions::get_num_cols(m, arrayLen);
+	CipherTable* ret = new CipherTable();
+	vector<vector<ZZ> >* my_secrets = buildSecretsVector(secrects, secretLen, arrayLen);
+	Functions::createCipher(my_secrets, m, num_cols, arrayLen, ret->getCMatrix(), ret->getElementsMatrix(), elgammal);
+	ret->set_dimentions(m, num_cols);
+	delete my_secrets;
+	delete_key(elgammal);
+	delete_key(elgammal1);
+	delete_key(elgammal2);
 	return ret;
 }
 
