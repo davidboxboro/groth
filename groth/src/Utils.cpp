@@ -247,7 +247,8 @@ void* encrypt2(void** in_secrets, int secretLen, int arrayLen, int firstIndex, i
 	ret->set_dimentions(m, num_cols);
 	delete my_secrets;
 	delete_key(elgammal);
-	//delete_key(temp);
+	delete_key(temp);
+	delete prod;
 	return ret;
 }
 
@@ -475,8 +476,10 @@ void *shuffle_internal(void* reenc_key, char* ciphers_in, int ciphers_array_len,
 }
 
 // david's shuffle function
-void *shuffle_internal2(int firstIndex, int lastIndex, char* ciphers_in, int ciphers_array_len, int number_of_elements, char** shuffled_ciphers, int* shuffled_ciphers_len, int** permutation, int* permutation_len) {
+void *shuffle_internal2(int firstIndex, int lastIndex, char* ciphers_in, int ciphers_array_len, int number_of_elements, char** shuffled_ciphers, int* shuffled_ciphers_len, int** permutation, int* permutation_len, int* pi, int pi_len) {
 	init();
+
+	cout << "C pi " << pi_len << " " << pi[0] << " " << pi[1] << " " << pi[2] << " " << pi[3] << " " << pi[4] << endl;
 
 	// new stuff
 	ElGammal* temp = (ElGammal*)create_pub_key(firstIndex);	
@@ -488,6 +491,12 @@ void *shuffle_internal2(int firstIndex, int lastIndex, char* ciphers_in, int cip
 	ElGammal* reenc_key = new ElGammal();
 	reenc_key->set_pk(*prod);
 	
+	vector<long> p;
+	for (int i = 0; i < pi_len; i++) {
+		p.push_back(pi[i]);
+	}
+	// end new stuff
+
 	int number_of_cols = Functions::get_num_cols(m, number_of_elements);
 	string inp(ciphers_in, ciphers_array_len);
 	
@@ -501,7 +510,7 @@ void *shuffle_internal2(int firstIndex, int lastIndex, char* ciphers_in, int cip
           c_copy->at(i) = temp;
         }
 
-	RemoteShuffler *P = new RemoteShuffler(num, c_copy, (ElGammal*)reenc_key, m, number_of_cols, true);
+	RemoteShuffler *P = new RemoteShuffler(num, c_copy, (ElGammal*)reenc_key, m, number_of_cols, &p, true);
 	
 	CipherTable output(P->getC(), m);
 	int element_size;
@@ -515,6 +524,9 @@ void *shuffle_internal2(int firstIndex, int lastIndex, char* ciphers_in, int cip
 		out_perm[i] = reversed.at(i);
 	}
 	*permutation = out_perm;
+
+	delete_key(temp);
+	delete prod;
 
         return P;
 }
@@ -606,6 +618,8 @@ int verify2(int firstIndex, int lastIndex, char* proof, int proof_len, char* cip
 		return 1;
 	}
 	delete elgammal;
+	delete_key(temp);
+	delete prod;
 	return 0;
 }
 

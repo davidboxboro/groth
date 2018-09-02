@@ -18,6 +18,20 @@ RemoteShuffler::RemoteShuffler(const vector<long>& config, vector<vector<Cipher_
 	permute_and_reencrypt(reenc_key);
 }
 
+RemoteShuffler::RemoteShuffler(const vector<long>& config, vector<vector<Cipher_elg>* >* ciphers, ElGammal* reenc_key, int m_in, int n_in, vector<long>* v, bool owner) : config_(config), time_rw_p(0), time_rw_v(0), time_cm(0),
+  c(ciphers), C(nullptr), pi(nullptr), R(nullptr), m(m_in), n(n_in), time_p(0), P(nullptr), owner_(owner), flow_flag_(false) {
+
+	mu = 4;
+	mu_h = 2*mu-1;
+
+	m_r_ = m/mu;
+
+	flow_flag_ = (m_r_ == 4);
+	key = new ElGammal(*reenc_key);
+	permute_and_reencrypt2(reenc_key, v);
+}
+
+
 RemoteShuffler::~RemoteShuffler() {
 	if (owner_) {
 		if (c != nullptr) Functions::delete_vector(c);
@@ -42,6 +56,20 @@ vector<vector<Cipher_elg>* >* RemoteShuffler::permute_and_reencrypt(ElGammal* re
 	//auto tstart = high_resolution_clock::now();
 	pi = new vector<vector<vector<long>* >* >(m);
 	Permutation::perm_matrix(pi,n,m);
+	R = new vector<vector<ZZ>*>(m);
+	Functions::randomEl(R,m,n);
+	C = new vector<vector<Cipher_elg>* >(m);
+	Functions::reencryptCipher(C,c,pi,R,m,n, reenc_key);
+	//auto tstop = high_resolution_clock::now();
+	//duration<double> ttime= tstop-tstart;
+	// cout << "To permute and rerandomize the ciphertexts took " << ttime.count() << " second(s)." << endl;
+	return C;
+}
+
+vector<vector<Cipher_elg>* >* RemoteShuffler::permute_and_reencrypt2(ElGammal* reenc_key, vector<long>* v) {
+	//auto tstart = high_resolution_clock::now();
+	pi = new vector<vector<vector<long>* >* >(m);
+	Permutation::perm_matrix2(pi,n,m,v);
 	R = new vector<vector<ZZ>*>(m);
 	Functions::randomEl(R,m,n);
 	C = new vector<vector<Cipher_elg>* >(m);

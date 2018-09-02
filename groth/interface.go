@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"sync"
 	"unsafe"
+	"fmt"
 
 	log "github.com/Sirupsen/logrus"
 )
@@ -303,12 +304,12 @@ func __decrypt(all_ciphers_texts string, keyID int) (groupelts []string) {
 	return plaintexts
 }
 
-func (g Groth) Shuffle(ciphers []byte, cipherlen int, firstIndex int, lastIndex int) (ciphersout []byte, permutation []int, shuffle int) {
+func (g Groth) Shuffle(ciphers []byte, cipherlen int, firstIndex int, lastIndex int, pi []int32) (ciphersout []byte, permutation []int, shuffle int) {
 	runtime.GC()
 	in_cipherStr := string(ciphers[:len(ciphers)])
 	number_of_elements := int(len(ciphers) / cipherlen)
 	memstat("shuffle begin");
-	ciphersout_str, perm, pointer := __shuffle(in_cipherStr, number_of_elements, firstIndex, lastIndex)
+	ciphersout_str, perm, pointer := __shuffle(in_cipherStr, number_of_elements, firstIndex, lastIndex, pi)
 	// runtime.GC()
 	memstat("shuffle end");
 	handle := records.insertRecord(pointer)
@@ -329,12 +330,12 @@ func (g Groth) Prove(h int) (proof []byte, public_randoms string) {
 
 	// runtime.GC()
 	memstat("prove end")
-	
+
 	return []byte(proof_ret), out_public_randoms
 }
 
 //Shuffles
-func __shuffle(in_cipherStr string, number_of_elements int, firstIndex int, lastIndex int) (ciphersout_str string, permutation []int, record unsafe.Pointer) {
+func __shuffle(in_cipherStr string, number_of_elements int, firstIndex int, lastIndex int, pi []int32) (ciphersout_str string, permutation []int, record unsafe.Pointer) {
 	//elgammal := C.create_pub_key(C.int(keyIndex))
 	//defer C.delete_key(elgammal)
 
@@ -343,10 +344,15 @@ func __shuffle(in_cipherStr string, number_of_elements int, firstIndex int, last
 	var perm unsafe.Pointer
 	var perm_len C.int
 
+	// new stuff
+	pi_len := len(pi)
+
+	fmt.Println("go pi", pi_len, pi[0:5])
+
 	pointer := C.shuffle_internal2(C.int(firstIndex), C.int(lastIndex),
 		C.CString(in_cipherStr), C.int(len(in_cipherStr)), C.int(number_of_elements),
 		(**C.char)(unsafe.Pointer(&shuffled_ciphers)), (*C.int)(unsafe.Pointer(&shuffled_ciphers_len)),
-		(**C.int)(unsafe.Pointer(&perm)), (*C.int)(unsafe.Pointer(&perm_len)))
+		(**C.int)(unsafe.Pointer(&perm)), (*C.int)(unsafe.Pointer(&perm_len)), (*C.int)(unsafe.Pointer(&pi[0])), C.int(pi_len))
 
 	ret_ciphers := C.GoStringN((*C.char)(shuffled_ciphers), shuffled_ciphers_len)
 

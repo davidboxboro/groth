@@ -2,7 +2,7 @@ package groth
 
 import "fmt"
 import "testing"
-//import "time"
+import "time"
 
 var _ = fmt.Printf
 
@@ -68,12 +68,13 @@ func TestEncryptVerified(t *testing.T) {
 		t.Errorf("failed to verify proof of knowledge")
 	}
 }
+*/
 
 func TestEndToEnd(t *testing.T) {
 	start := time.Now()
 
 	var secrets []byte
-	secrets = make([]byte, 2)
+	secrets = make([]byte, 100000)
 	var i int = 0
 	for i < len(secrets) {
 		secrets[i] = byte(i)
@@ -92,7 +93,7 @@ func TestEndToEnd(t *testing.T) {
 	fmt.Println("starting shuffle.")
 	shuffleStart := time.Now()
 	fmt.Println(len(ciphers), ciphers_len)
-	ciphers_outStr, _, handle := g.Shuffle(ciphers, ciphers_len, 1)
+	ciphers_outStr, _, handle := g.Shuffle(ciphers, ciphers_len, 1, 1)
 	shuffleTime := time.Since(shuffleStart)
 	fmt.Println("Shuffle time: ", shuffleTime)
 
@@ -100,7 +101,7 @@ func TestEndToEnd(t *testing.T) {
 	proofTime := time.Since(shuffleStart)
 	fmt.Println("Proof time: ", proofTime)
 
-	ret := g.Verify(proof, ciphers, ciphers_outStr, 1, pub_randoms)
+	ret := g.Verify(proof, ciphers, ciphers_outStr, 1, 1, pub_randoms)
 
 	var j int = 0
 	for j < len(groupelts) {
@@ -114,4 +115,4 @@ func TestEndToEnd(t *testing.T) {
 	elapsed := time.Since(start)
 	fmt.Println("Test complete:", ret, ". Total time: ", elapsed)
 }
-*/
+

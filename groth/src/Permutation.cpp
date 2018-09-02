@@ -32,7 +32,7 @@ vector<long>* Permutation::permutation(long N){
 	for (i=0; i<N; i++){
 		v->at(i)= i+1;
 	}
-
+	cout << "N: " << N << endl;
 	//create N times a random number <N, calculates r = i+r%N and switchs the values v[i] and v[r]
 	for (i=0; i<N; i++){
 		r = RandomBnd(N);
@@ -94,6 +94,41 @@ void Permutation::perm_matrix(vector<vector<vector<long>* >* >*  pi, long n, lon
 	}
 
 	delete v;
+}
+
+//david's perm
+void Permutation::perm_matrix2(vector<vector<vector<long>* >* >*  pi, long n, long m, vector<long>* v){
+
+	//vector<long>* v=0;
+	long i,j,k,t_1,t_2;
+	vector<vector<long>* >* r=0;
+	vector<long>* el= 0;
+	//get given perm
+	for (i=0; i< m; i++){
+
+		r=new vector<vector<long>* >(n);
+		for (j=0; j<n; j++){
+
+			k= i*n +j;
+			t_1 = v->at(k)/n;
+
+			t_2 = v->at(k)%n;
+			if (t_2 == 0)
+			{
+				t_1 = t_1 -1;
+				t_2 = n-1;
+			}
+			else
+			{
+				t_2 = t_2-1;
+			}
+			el=new vector<long>(2);
+			el->at(0)=t_1;
+			el->at(1)= t_2;
+			r->at(j)=el;
+		}
+		pi->at(i)=r;
+	}
 }
 
 

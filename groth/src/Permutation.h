@@ -29,6 +29,7 @@ public:
 static	vector<long>* permutation(long N);
 //creates a permutation of a mxn matrix
 static	void perm_matrix(vector<vector<vector<long>* >* >* pi,long n, long m);
+static	void perm_matrix2(vector<vector<vector<long>* >* >* pi,long n, long m, vector<long>* v);
 };
 
 #endif /* PERMUTATION_H_ */

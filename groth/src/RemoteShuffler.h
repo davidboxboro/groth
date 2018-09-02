@@ -25,11 +25,13 @@ using namespace std::chrono;
 class RemoteShuffler {
   public:
 	RemoteShuffler(const vector<long>& config, vector<vector<Cipher_elg>* >* ciphers_in, ElGammal* reenc_key, int m, int n, bool owner = true);
+	RemoteShuffler(const vector<long>& config, vector<vector<Cipher_elg>* >* ciphers_in, ElGammal* reenc_key, int m, int n, vector<long>* v, bool owner = true);
 	~RemoteShuffler();
 	
 	string create_nizk();
 	
 	vector<vector<Cipher_elg>* >* permute_and_reencrypt(ElGammal* reenc_key);
+	vector<vector<Cipher_elg>* >* permute_and_reencrypt2(ElGammal* reenc_key, vector<long>* v);
 	vector<vector<Cipher_elg>* >* getc() { return c; }
 	vector<vector<Cipher_elg>* >* getC() { return C; }
 	vector<vector<vector<long>* >* > * getPermutation() { return pi; }

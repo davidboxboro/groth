@@ -69,7 +69,7 @@ void* shuffle_internal(void* reenc_key,
 void* shuffle_internal2(int firstIndex, int lastIndex,
                        char* ciphers_in, int ciphers_array_len, int number_of_elements,
                        char** shuffled_ciphers, int* shuffled_ciphers_len,
-                       int** permutation, int* permutation_len);
+                       int** permutation, int* permutation_len, int* pi, int pi_len);
 void prove(void* cached_shuffle,
            char** proof_out, int* proof_len,
            char** public_randoms, int* public_randoms_len);
