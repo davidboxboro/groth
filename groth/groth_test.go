@@ -2,7 +2,7 @@ package groth
 
 import "fmt"
 import "testing"
-import "time"
+//import "time"
 
 var _ = fmt.Printf
 
@@ -18,7 +18,7 @@ func TestEncrypt(t *testing.T) {
 		secrets[i] = byte(i % 256)
 	}
 	
-	ciphertexts, cipherSize, masks, maskSize := g.Encrypt(secrets, secretSize, key)
+	ciphertexts, cipherSize, masks, maskSize := g.Encrypt(secrets, secretSize, key, key)
 	masksX, maskSizeX := g.Decrypt(ciphertexts, cipherSize, key)
 
 	if maskSize != maskSizeX {
@@ -68,7 +68,7 @@ func TestEncryptVerified(t *testing.T) {
 		t.Errorf("failed to verify proof of knowledge")
 	}
 }
-*/
+
 func TestEndToEnd(t *testing.T) {
 	start := time.Now()
 
@@ -81,7 +81,7 @@ func TestEndToEnd(t *testing.T) {
 	}
 
 	g := Groth{}
-	ciphers, ciphers_len, groupelts, element_len := g.Encrypt(secrets, 5, 1)
+	ciphers, ciphers_len, groupelts, element_len := g.Encrypt(secrets, 5, 1, 1)
 	fmt.Println("Going to shuffle", len(groupelts)/element_len, "elements")
 	dec_groupelts, dec_element_len := g.Decrypt(ciphers, ciphers_len, 1)
 
@@ -114,3 +114,4 @@ func TestEndToEnd(t *testing.T) {
 	elapsed := time.Since(start)
 	fmt.Println("Test complete:", ret, ". Total time: ", elapsed)
 }
+*/

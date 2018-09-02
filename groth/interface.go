@@ -303,12 +303,12 @@ func __decrypt(all_ciphers_texts string, keyID int) (groupelts []string) {
 	return plaintexts
 }
 
-func (g Groth) Shuffle(ciphers []byte, cipherlen int, keyIndex int) (ciphersout []byte, permutation []int, shuffle int) {
+func (g Groth) Shuffle(ciphers []byte, cipherlen int, firstIndex int, lastIndex int) (ciphersout []byte, permutation []int, shuffle int) {
 	runtime.GC()
 	in_cipherStr := string(ciphers[:len(ciphers)])
 	number_of_elements := int(len(ciphers) / cipherlen)
 	memstat("shuffle begin");
-	ciphersout_str, perm, pointer := __shuffle(in_cipherStr, number_of_elements, keyIndex)
+	ciphersout_str, perm, pointer := __shuffle(in_cipherStr, number_of_elements, firstIndex, lastIndex)
 	// runtime.GC()
 	memstat("shuffle end");
 	handle := records.insertRecord(pointer)
@@ -334,16 +334,16 @@ func (g Groth) Prove(h int) (proof []byte, public_randoms string) {
 }
 
 //Shuffles
-func __shuffle(in_cipherStr string, number_of_elements int, keyIndex int) (ciphersout_str string, permutation []int, record unsafe.Pointer) {
-	elgammal := C.create_pub_key(C.int(keyIndex))
-	defer C.delete_key(elgammal)
+func __shuffle(in_cipherStr string, number_of_elements int, firstIndex int, lastIndex int) (ciphersout_str string, permutation []int, record unsafe.Pointer) {
+	//elgammal := C.create_pub_key(C.int(keyIndex))
+	//defer C.delete_key(elgammal)
 
 	var shuffled_ciphers unsafe.Pointer
 	var shuffled_ciphers_len C.int
 	var perm unsafe.Pointer
 	var perm_len C.int
 
-	pointer := C.shuffle_internal(elgammal,
+	pointer := C.shuffle_internal2(C.int(firstIndex), C.int(lastIndex),
 		C.CString(in_cipherStr), C.int(len(in_cipherStr)), C.int(number_of_elements),
 		(**C.char)(unsafe.Pointer(&shuffled_ciphers)), (*C.int)(unsafe.Pointer(&shuffled_ciphers_len)),
 		(**C.int)(unsafe.Pointer(&perm)), (*C.int)(unsafe.Pointer(&perm_len)))
@@ -383,10 +383,10 @@ func __prove(p unsafe.Pointer) (proof string, out_public_randoms string) {
 	return ret_proof, ret_public_randoms
 }
 
-func (g Groth) Verify(proof []byte, ciphersin []byte, ciphersout []byte, keyIndex int, public_randoms string) bool {
+func (g Groth) Verify(proof []byte, ciphersin []byte, ciphersout []byte, firstIndex int, lastIndex int, public_randoms string) bool {
 	runtime.GC()
 	memstat("verify begin")
-	result := __verify(keyIndex, string(proof), string(ciphersin), string(ciphersout), public_randoms)
+	result := __verify(firstIndex, lastIndex, string(proof), string(ciphersin), string(ciphersout), public_randoms)
 	// runtime.GC()
 	memstat("verify end")
 
@@ -395,8 +395,8 @@ func (g Groth) Verify(proof []byte, ciphersin []byte, ciphersout []byte, keyInde
 
 //Verifies proof
 //int verify(int key_index, char* proof, int proof_len, char* ciphers_in, int len, char* post_shuffle_cipehrs, int post_shuffle_cipehrs_len, char* public_randoms, int public_randoms_len);
-func __verify(key_index int, proof string, ciphers_in string, post_shuffle_cipehrs string, public_randoms string) bool {
-	ret := C.verify(C.int(key_index), C.CString(proof), C.int(len(proof)), C.CString(ciphers_in), C.int(len(ciphers_in)), C.CString(post_shuffle_cipehrs), C.int(len(post_shuffle_cipehrs)), C.CString(public_randoms), C.int(len(public_randoms)))
+func __verify(first_index int, last_index int, proof string, ciphers_in string, post_shuffle_cipehrs string, public_randoms string) bool {
+	ret := C.verify2(C.int(first_index), C.int(last_index), C.CString(proof), C.int(len(proof)), C.CString(ciphers_in), C.int(len(ciphers_in)), C.CString(post_shuffle_cipehrs), C.int(len(post_shuffle_cipehrs)), C.CString(public_randoms), C.int(len(public_randoms)))
 	if int(ret) != 0 {
 		return true
 	}

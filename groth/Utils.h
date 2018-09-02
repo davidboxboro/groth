@@ -66,10 +66,19 @@ void* shuffle_internal(void* reenc_key,
                        char* ciphers_in, int ciphers_array_len, int number_of_elements,
                        char** shuffled_ciphers, int* shuffled_ciphers_len,
                        int** permutation, int* permutation_len);
+void* shuffle_internal2(int firstIndex, int lastIndex,
+                       char* ciphers_in, int ciphers_array_len, int number_of_elements,
+                       char** shuffled_ciphers, int* shuffled_ciphers_len,
+                       int** permutation, int* permutation_len);
 void prove(void* cached_shuffle,
            char** proof_out, int* proof_len,
            char** public_randoms, int* public_randoms_len);
 int verify(int key_index,
+           char* proof, int proof_len,
+           char* ciphers_in, int len,
+           char* post_shuffle_cipehrs, int post_shuffle_cipehrs_len,
+           char* public_randoms, int public_randoms_len);
+int verify2(int first_index, int last_index,
            char* proof, int proof_len,
            char* ciphers_in, int len,
            char* post_shuffle_cipehrs, int post_shuffle_cipehrs_len,

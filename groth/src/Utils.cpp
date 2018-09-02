@@ -231,10 +231,12 @@ void* encrypt2(void** in_secrets, int secretLen, int arrayLen, int firstIndex, i
 	init();
 	const unsigned char** secrects = (const unsigned char**) in_secrets; 
 
-	ElGammal* elgammal1 = (ElGammal*)create_pub_key(firstIndex);
-	ElGammal* elgammal2 = (ElGammal*)create_pub_key(lastIndex);
-	Mod_p* prod = new Mod_p();
-	prod->mult(*prod, elgammal1->get_pk(), elgammal2->get_pk()); 
+	ElGammal* temp = (ElGammal*)create_pub_key(firstIndex);	
+	Mod_p* prod = new Mod_p(temp->get_pk());
+	for (int i = firstIndex+1; i <= lastIndex; i++) {
+		ElGammal* temp = (ElGammal*)create_pub_key(i);	
+		prod->mult(*prod, *prod, temp->get_pk()); 
+	}
 	ElGammal* elgammal = new ElGammal();
 	elgammal->set_pk(*prod);
 
@@ -245,8 +247,7 @@ void* encrypt2(void** in_secrets, int secretLen, int arrayLen, int firstIndex, i
 	ret->set_dimentions(m, num_cols);
 	delete my_secrets;
 	delete_key(elgammal);
-	delete_key(elgammal1);
-	delete_key(elgammal2);
+	//delete_key(temp);
 	return ret;
 }
 
@@ -473,6 +474,51 @@ void *shuffle_internal(void* reenc_key, char* ciphers_in, int ciphers_array_len,
         return P;
 }
 
+// david's shuffle function
+void *shuffle_internal2(int firstIndex, int lastIndex, char* ciphers_in, int ciphers_array_len, int number_of_elements, char** shuffled_ciphers, int* shuffled_ciphers_len, int** permutation, int* permutation_len) {
+	init();
+
+	// new stuff
+	ElGammal* temp = (ElGammal*)create_pub_key(firstIndex);	
+	Mod_p* prod = new Mod_p(temp->get_pk());
+	for (int i = firstIndex+1; i <= lastIndex; i++) {
+		ElGammal* temp = (ElGammal*)create_pub_key(i);	
+		prod->mult(*prod, *prod, temp->get_pk()); 
+	}
+	ElGammal* reenc_key = new ElGammal();
+	reenc_key->set_pk(*prod);
+	
+	int number_of_cols = Functions::get_num_cols(m, number_of_elements);
+	string inp(ciphers_in, ciphers_array_len);
+	
+	CipherTable input(inp, m, (ElGammal*)reenc_key);
+	vector<vector<Cipher_elg>* >* c = input.getCMatrix(); // contains the original input ciphertexts
+
+        // c does not return safely! it's on the stack...so we must make a copy
+        vector<vector<Cipher_elg>* >* c_copy = new vector<vector<Cipher_elg>* >(c->size());
+        for (unsigned int i = 0; i < c->size(); i++) {
+          vector<Cipher_elg> *temp = new vector<Cipher_elg>(*(c->at(i)));
+          c_copy->at(i) = temp;
+        }
+
+	RemoteShuffler *P = new RemoteShuffler(num, c_copy, (ElGammal*)reenc_key, m, number_of_cols, true);
+	
+	CipherTable output(P->getC(), m);
+	int element_size;
+	*shuffled_ciphers = (char*) get_ciphertexts(&output, shuffled_ciphers_len, &element_size);
+	
+	vector<long> reversed;
+	P->reverse_permutation(reversed);
+	*permutation_len = reversed.size();
+	int* out_perm = new int[*permutation_len];
+	for (int i = 0; i < *permutation_len; i++) {
+		out_perm[i] = reversed.at(i);
+	}
+	*permutation = out_perm;
+
+        return P;
+}
+
 // requires shuffle_internal to be called first and cached data must be passed in
 // on exit, deletes cached shuffle data
 // TODO cache freeing function may be cleaner interface
@@ -502,6 +548,43 @@ void prove(void *cache_data, char** proof_out, int* proof_len, char** public_ran
 int verify(int key_index, char* proof, int proof_len, char* ciphers_in, int len_in, char* post_shuffle_cipehrs, int post_shuffle_cipehrs_len, char* public_randoms, int public_randoms_len) {
 	init();
 	ElGammal* elgammal = (ElGammal*) create_pub_key(key_index);
+	string inp(ciphers_in, len_in);
+	string out(post_shuffle_cipehrs, post_shuffle_cipehrs_len);
+	CipherTable c(inp, m, elgammal);
+	CipherTable C(out, m, elgammal);
+	
+	if ((c.rows() != C.rows()) || (c.cols() != C.cols())) {
+		return false;
+	}
+	
+	string in_rands(public_randoms, public_randoms_len);
+	istringstream respstream(in_rands);
+	
+	VerifierClient V(num, C.rows(), C.cols(), c.getCMatrix(), C.getCMatrix(), elgammal, false, true);
+	V.set_public_vector(respstream, c.cols(), num[3], num[7], num[4]);
+	string proof_s(proof, proof_len);
+        delete[] public_randoms;
+	if (V.process_nizk(proof_s)) {
+		delete elgammal;
+		return 1;
+	}
+	delete elgammal;
+	return 0;
+}
+
+// david's verify func
+int verify2(int firstIndex, int lastIndex, char* proof, int proof_len, char* ciphers_in, int len_in, char* post_shuffle_cipehrs, int post_shuffle_cipehrs_len, char* public_randoms, int public_randoms_len) {
+	init();
+
+	ElGammal* temp = (ElGammal*)create_pub_key(firstIndex);	
+	Mod_p* prod = new Mod_p(temp->get_pk());
+	for (int i = firstIndex+1; i <= lastIndex; i++) {
+		ElGammal* temp = (ElGammal*)create_pub_key(i);	
+		prod->mult(*prod, *prod, temp->get_pk()); 
+	}
+	ElGammal* elgammal = new ElGammal();
+	elgammal->set_pk(*prod);
+
 	string inp(ciphers_in, len_in);
 	string out(post_shuffle_cipehrs, post_shuffle_cipehrs_len);
 	CipherTable c(inp, m, elgammal);
