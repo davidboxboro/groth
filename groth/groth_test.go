@@ -17,7 +17,7 @@ func TestEncrypt(t *testing.T) {
 	for i := 0; i < nSecrets * secretSize; i++ {
 		secrets[i] = byte(i % 256)
 	}
-	
+
 	ciphertexts, cipherSize, masks, maskSize := g.Encrypt(secrets, secretSize, key, key)
 	masksX, maskSizeX := g.Decrypt(ciphertexts, cipherSize, key)
 
@@ -32,13 +32,14 @@ func TestEncrypt(t *testing.T) {
 		}
 	}
 }
-/*
+
 func TestEncryptVerified(t *testing.T) {
 	var g Groth
 
 	start := time.Now()
 	secretSize := 8
-	nSecrets := 80384 * 10 // 10K
+	//nSecrets := 80384 * 10 // 10K
+	nSecrets := 100
 	secrets := make([]byte, nSecrets * secretSize)
 	key := 0
 
@@ -68,8 +69,9 @@ func TestEncryptVerified(t *testing.T) {
 		t.Errorf("failed to verify proof of knowledge")
 	}
 }
-*/
 
+
+/*
 func TestEndToEnd(t *testing.T) {
 	start := time.Now()
 
@@ -115,4 +117,4 @@ func TestEndToEnd(t *testing.T) {
 	elapsed := time.Since(start)
 	fmt.Println("Test complete:", ret, ". Total time: ", elapsed)
 }
-
+*/

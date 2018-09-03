@@ -194,7 +194,7 @@ int verify_encrypt(void* ciphertexts, int ciphertexts_size, void* pfs, int proof
   char *proofs = (char *) pfs;
 
   volatile int verified = 1;
-  #pragma omp parallel for collapse(2) num_threads(num_threads) if(parallel)
+  //#pragma omp parallel for collapse(2) num_threads(num_threads) if(parallel)
   for (int i = 0; i < m; i++) {
     for (int j = 0; j < num_cols; j++) {
       char *proof = &proofs[(i*num_cols + j) * SchnorrProof::bytesize];
@@ -537,9 +537,13 @@ void *shuffle_internal2(int firstIndex, int lastIndex, char* ciphers_in, int cip
 void prove(void *cache_data, char** proof_out, int* proof_len, char** public_randoms, int* public_randoms_len) {
 	init();
 
+	cout << num[1] << " " << num[2] << endl;
         RemoteShuffler *P = (RemoteShuffler*) cache_data;
 
+	// where the error lies
+	cout << "hi" << endl;
 	string proof = P->create_nizk();
+	cout << "hi" << endl;
 
 	*proof_len = proof.size();
 	*proof_out = new char [*proof_len + 1];
@@ -588,6 +592,7 @@ int verify(int key_index, char* proof, int proof_len, char* ciphers_in, int len_
 int verify2(int firstIndex, int lastIndex, char* proof, int proof_len, char* ciphers_in, int len_in, char* post_shuffle_cipehrs, int post_shuffle_cipehrs_len, char* public_randoms, int public_randoms_len) {
 	init();
 
+	
 	ElGammal* temp = (ElGammal*)create_pub_key(firstIndex);	
 	Mod_p* prod = new Mod_p(temp->get_pk());
 	for (int i = firstIndex+1; i <= lastIndex; i++) {
@@ -629,4 +634,9 @@ void delete_int_arr(int* x) {
 
 int get_int_elem(int* arr, int i) {
 	return arr[i];
+}
+
+// david's new prove/verify funcs (for interface.go)
+void* prove_dec(int index, char* ciphers_first_half, char* chal, char* a, char* b, char* p, char* z) {
+	
 }

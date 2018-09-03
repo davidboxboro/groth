@@ -408,3 +408,12 @@ func __verify(first_index int, last_index int, proof string, ciphers_in string, 
 	}
 	return false
 }
+
+// david's new prove/verify decryption functions
+func (g Groth) ProveDec(index int, ciphers_first_half []byte, chal []byte) (a []byte, b []byte, p []byte, z []byte) {
+	return nil, nil, nil, nil
+} 
+
+
+
+

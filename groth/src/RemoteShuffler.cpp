@@ -87,6 +87,8 @@ string RemoteShuffler::create_nizk() {
 	ZZ c,r;
 	string input_for_next_prover;
 	
+	cout << m << " " << n << endl;
+
 	P = new Prover_toom(m_r_, C,R,pi,config_, m, n, key);
 	verifier_ = new VerifierClient(config_, m, n, this->c, C, key, false, false);
 

@@ -43,6 +43,8 @@ Functions::~Functions() {}
 
 
 void Functions::read_config(const string& name, vector<long> & num, ZZ & genq){
+
+	cout << "num threads " << num_threads << endl;
 	ifstream ist, ist1;
 	string line;
 	vector<string> lines;
@@ -173,10 +175,12 @@ void Functions::createCipherWithProof(vector<vector<ZZ> >* secrets, int m, int n
 	}
 
 	//PARALLELIZE
-	#pragma omp parallel for collapse(2) num_threads(num_threads) if(parallel)
+	//#pragma omp parallel for collapse(2) num_threads(num_threads) if(parallel)
+	cout << " m " << m << " n " << n << endl;
 	for (long i=0; i<m; i++){
 		for (long j = 0; j <n; j++){
 			ZZ ran_2 = RandomBnd(ord);
+			cout << "ran 2 i " << ran_2 << endl;
 			Cipher_elg temp;
 			Mod_p ran_1;
 			if (count.fetch_add(1) <= N){
@@ -192,6 +196,10 @@ void Functions::createCipherWithProof(vector<vector<ZZ> >* secrets, int m, int n
 			C->at(i)->at(j)=temp;
 			elements->at(i)->at(j) = ran_1;
 
+			// david's change - don't uncomment!
+			//ran_2 = enc_key->get_sk();
+
+			cout << "ran 2 f " << ran_2 << endl;
                         SchnorrProof pf = SchnorrProof(ran_2);
                         int k = SchnorrProof::bytesize * (i*n + j);
                         pf.serialize(&proofs[k]);

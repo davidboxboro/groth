@@ -33,11 +33,15 @@ SchnorrProof::SchnorrProof(const ZZ& alpha) {
   w = RandomBnd(ord);
   basepoint_scalarmult(this->a, w);
   this->a.serialize_canonical(this->a_canonical);
-  c = fiat_shamir();
+  //c = fiat_shamir();
+  c = 5;
 
   ZZ t1;
   MulMod(t1, alpha, c, ord);
   AddMod(this->r, t1, w, ord);
+
+  //dav
+  //cout << "prove, c " << c << " r " << r << " ord " << ord << endl;
 }
 
 void SchnorrProof::serialize(char *output) {
@@ -59,12 +63,17 @@ SchnorrProof::SchnorrProof(const char *serialized) {
 // given x = g^alpha, g, and proof (r, a)
 int SchnorrProof::verify(const CurvePoint& x) {
   ZZ c;
-  c = fiat_shamir();
+  //c = fiat_shamir();
+  c = 5;
 
   CurvePoint ta0, tg, ta;
   basepoint_scalarmult(tg, this->r);
   PowerMod(ta0, x, c, ZZ(0)); // these don't work with fake ZZs
   MulMod(ta, this->a, ta0, ZZ(0));
+
+  //dav
+  //cout << "verify, c " << c << " r " << r << " ord " << ord << endl;
+  //std::exit(EXIT_FAILURE);
 
   return ta == tg;
 }
