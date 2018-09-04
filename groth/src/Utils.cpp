@@ -148,6 +148,28 @@ struct ciphertexts_and_proofs {
   int proofs_size;
 };
 
+// david's dec prf
+void* decrypt_proof(void** in_secrets, int secretLen, int arrayLen, int keyIndex) {
+	init();
+	const unsigned char** secrects = (const unsigned char**) in_secrets;
+	ElGammal* elgammal = (ElGammal*)create_pub_key(keyIndex);
+	int num_cols = Functions::get_num_cols(m, arrayLen);
+	CipherTable* ret = new CipherTable();
+	vector<vector<ZZ> >* my_secrets = buildSecretsVector(secrects, secretLen, arrayLen);
+
+        struct ciphertexts_and_proofs *s = (struct ciphertexts_and_proofs *) malloc(sizeof(struct ciphertexts_and_proofs));
+        s->proofs_size = SchnorrProof::bytesize * m * num_cols;
+        s->proofs = new char[s->proofs_size];
+	Functions::createDecProof(my_secrets, m, num_cols, arrayLen, ret->getCMatrix(), ret->getElementsMatrix(), s->proofs, elgammal);
+
+	ret->set_dimentions(m, num_cols);
+	delete my_secrets;
+	delete_key(elgammal);
+        s->ciphertexts = ret;
+	return s;
+}
+
+
 void* encrypt_with_proof(void** in_secrets, int secretLen, int arrayLen, int keyIndex) {
 	init();
 	const unsigned char** secrects = (const unsigned char**) in_secrets;
@@ -479,7 +501,7 @@ void *shuffle_internal(void* reenc_key, char* ciphers_in, int ciphers_array_len,
 void *shuffle_internal2(int firstIndex, int lastIndex, char* ciphers_in, int ciphers_array_len, int number_of_elements, char** shuffled_ciphers, int* shuffled_ciphers_len, int** permutation, int* permutation_len, int* pi, int pi_len) {
 	init();
 
-	cout << "C pi " << pi_len << " " << pi[0] << " " << pi[1] << " " << pi[2] << " " << pi[3] << " " << pi[4] << endl;
+	//cout << "C pi " << pi_len << " " << pi[0] << " " << pi[1] << " " << pi[2] << " " << pi[3] << " " << pi[4] << endl;
 
 	// new stuff
 	ElGammal* temp = (ElGammal*)create_pub_key(firstIndex);	
@@ -537,13 +559,13 @@ void *shuffle_internal2(int firstIndex, int lastIndex, char* ciphers_in, int cip
 void prove(void *cache_data, char** proof_out, int* proof_len, char** public_randoms, int* public_randoms_len) {
 	init();
 
-	cout << num[1] << " " << num[2] << endl;
+	//cout << num[1] << " " << num[2] << endl;
         RemoteShuffler *P = (RemoteShuffler*) cache_data;
 
 	// where the error lies
-	cout << "hi" << endl;
+	//cout << "above" << endl;
 	string proof = P->create_nizk();
-	cout << "hi" << endl;
+	//cout << "below" << endl;
 
 	*proof_len = proof.size();
 	*proof_out = new char [*proof_len + 1];

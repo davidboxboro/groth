@@ -11,7 +11,7 @@ import (
 	"runtime"
 	"sync"
 	"unsafe"
-	"fmt"
+	//"fmt"
 
 	log "github.com/Sirupsen/logrus"
 )
@@ -66,6 +66,81 @@ func memstat(s string) {
 	//   	"malloc": m.Mallocs,
 	//   	"free": m.Frees,
 	//   }).Info("memory")
+}
+
+// david's auth dec 
+func (g Groth) DecryptProven(ciphers []byte, cipherlen int, keyIndex int) (groupelts []byte, groupeltlen int, proof []byte) {
+	runtime.GC()
+	ciphers_ := string(ciphers[:len(ciphers)])
+	groupelts_arr, proof := __decrypt_proven(ciphers_, ciphers, cipherlen, keyIndex)
+	ret, retlen := string_arr_to_byte_arr(groupelts_arr)
+	return ret, retlen, proof
+}
+
+func __decrypt_proven(all_ciphers_texts string, secrets []byte, secretlen int, keyIndex int) (groupelts []string, proof []byte) {
+
+	elgammal := C.create_decryption_key(C.int(keyIndex))
+	defer C.delete_key(elgammal)
+
+	cCiphers := C.parse_ciphers(unsafe.Pointer(C.CString(all_ciphers_texts)), C.int(len(all_ciphers_texts)), elgammal)
+	rows := int(C.rows(cCiphers))
+	cols := int(C.cols(cCiphers))
+
+	num_ciphers := rows * cols
+
+	var plaintexts []string
+	plaintexts = make([]string, num_ciphers, num_ciphers)
+
+	done := make(chan bool)
+	var i int = 0
+	for i < rows {
+		go func(i int, done chan bool) {
+			var j int = 0
+			for j < cols {
+				var cLen C.int
+				cPlaintext := C.decrypt_cipher(cCiphers, C.int(i), C.int(j), unsafe.Pointer(&cLen), elgammal)
+				plaintexts[i*cols+j] = C.GoStringN((*C.char)(cPlaintext), cLen)
+				C.delete_str(cPlaintext)
+				j += 1
+			}
+			done <- true
+		}(i, done)
+		i += 1
+	}
+	count := 0
+	for range done { //wait for all loops to complete
+		count++
+		if count == rows {
+			break
+		}
+	}
+
+	//new stuff
+
+	var num_secrets int
+	num_secrets = len(secrets) / secretlen
+
+	cargs := C.makeCharArray(C.int(num_secrets))
+	defer C.freeCharArray(cargs, C.int(num_secrets))
+	var src_index int = 0
+	i = 0
+	for i < num_secrets {
+		C.setArrayString(cargs, (*C.char)(unsafe.Pointer(&secrets[0])), C.int(i), C.int(src_index), C.int(secretlen))
+		src_index = src_index + secretlen
+		i += 1
+	}
+
+	ptr := (*unsafe.Pointer)(unsafe.Pointer(cargs))
+	cCipherProof := C.decrypt_proof(ptr, C.int(secretlen), C.int(num_secrets), C.int(keyIndex))
+
+	var cLenProof C.int
+	cProof := C.encrypt_proof_part(cCipherProof, &cLenProof)
+	proof = C.GoBytes(cProof, cLenProof)
+
+	//end new stuff
+
+	C.delete_ciphers(cCiphers)
+	return plaintexts, proof
 }
 
 func (g Groth) EncryptProven(secrets []byte, secretlen int, keyIndex int) (ciphers []byte, cipherlen int, groupelts []byte, groupeltlen int, proof []byte) {
@@ -347,7 +422,7 @@ func __shuffle(in_cipherStr string, number_of_elements int, firstIndex int, last
 	// new stuff
 	pi_len := len(pi)
 
-	fmt.Println("go pi", pi_len, pi[0:5])
+	//fmt.Println("go pi", pi_len, pi[0:5])
 
 	pointer := C.shuffle_internal2(C.int(firstIndex), C.int(lastIndex),
 		C.CString(in_cipherStr), C.int(len(in_cipherStr)), C.int(number_of_elements),

@@ -36,6 +36,7 @@ public:
 	//generates N=num[0] different ciphertexts
 	static void createCipher(vector<vector<ZZ> >* secrets, int m, int n, int N, vector<vector<Cipher_elg>* >* C, vector<vector<Mod_p>* >* elements, ElGammal* enc_key);
         static void createCipherWithProof(vector<vector<ZZ> >* secrets, int m, int n, int N, vector<vector<Cipher_elg>* >* C, vector<vector<Mod_p>* >* elements, char* proofs, ElGammal* enc_key);
+        static void createDecProof(vector<vector<ZZ> >* secrets, int m, int n, int N, vector<vector<Cipher_elg>* >* C, vector<vector<Mod_p>* >* elements, char* proofs, ElGammal* enc_key);
 	//generates a matrix of random elements
 	static void randomEl( vector<vector<ZZ>*>* R, int m, int n);
 	//reencrypts the ciphertexts e using the permutation pi and random elements R

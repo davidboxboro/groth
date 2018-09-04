@@ -180,7 +180,6 @@ void Functions::createCipherWithProof(vector<vector<ZZ> >* secrets, int m, int n
 	for (long i=0; i<m; i++){
 		for (long j = 0; j <n; j++){
 			ZZ ran_2 = RandomBnd(ord);
-			cout << "ran 2 i " << ran_2 << endl;
 			Cipher_elg temp;
 			Mod_p ran_1;
 			if (count.fetch_add(1) <= N){
@@ -199,7 +198,31 @@ void Functions::createCipherWithProof(vector<vector<ZZ> >* secrets, int m, int n
 			// david's change - don't uncomment!
 			//ran_2 = enc_key->get_sk();
 
-			cout << "ran 2 f " << ran_2 << endl;
+                        SchnorrProof pf = SchnorrProof(ran_2);
+                        int k = SchnorrProof::bytesize * (i*n + j);
+                        pf.serialize(&proofs[k]);
+		}
+	}
+}
+
+//david func for auth dec proof gen
+void Functions::createDecProof(vector<vector<ZZ> >* secrets, int m, int n, int N, vector<vector<Cipher_elg>* >* C, vector<vector<Mod_p>* >* elements, char* proofs, ElGammal* enc_key) {
+	ZZ ord = H.get_ord();
+	atomic<std::int32_t> count(1);
+
+	for (long i = 0; i < m; i++) {
+		C->push_back(new vector<Cipher_elg>(n));
+		elements->push_back(new vector<Mod_p>(n));
+	}
+
+	//PARALLELIZE
+	//#pragma omp parallel for collapse(2) num_threads(num_threads) if(parallel)
+	for (long i=0; i<m; i++){
+		for (long j = 0; j <n; j++){
+			ZZ ran_2 = RandomBnd(ord);
+			// david's change - don't uncomment!
+			//ran_2 = enc_key->get_sk();
+
                         SchnorrProof pf = SchnorrProof(ran_2);
                         int k = SchnorrProof::bytesize * (i*n + j);
                         pf.serialize(&proofs[k]);

@@ -45,6 +45,7 @@ void* get_cipher(void* cipher_table, int i, int j, void* len);
 // for verified input metadata to first chain
 // same as encrypt except returned pointer does not have ciphertext directly
 void* encrypt_with_proof(void** secrets, int secretLen, int arrayLen, int keyIndex);
+void* decrypt_proof(void** secrets, int secretLen, int arrayLen, int keyIndex);
 // encrypt_cipher_part(encrypt_with_proof(x)) = encrypt(x)
 void* encrypt_cipher_part(void* cipher_and_proof);
 // returns a proof and its size (written to proof_size)
