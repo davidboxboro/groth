@@ -12,6 +12,8 @@
 #include "FakeZZ.h"
 #include "CurvePoint.h"
 #include "SchnorrProof.h"
+#include "CipherTable.h"
+#include "ElGammal.h"
 #include <mutex>
 #include <iomanip>
 #include <atomic>
@@ -175,8 +177,7 @@ void Functions::createCipherWithProof(vector<vector<ZZ> >* secrets, int m, int n
 	}
 
 	//PARALLELIZE
-	//#pragma omp parallel for collapse(2) num_threads(num_threads) if(parallel)
-	cout << " m " << m << " n " << n << endl;
+	#pragma omp parallel for collapse(2) num_threads(num_threads) if(parallel)
 	for (long i=0; i<m; i++){
 		for (long j = 0; j <n; j++){
 			ZZ ran_2 = RandomBnd(ord);
@@ -206,7 +207,7 @@ void Functions::createCipherWithProof(vector<vector<ZZ> >* secrets, int m, int n
 }
 
 //david func for auth dec proof gen
-void Functions::createDecProof(vector<vector<ZZ> >* secrets, int m, int n, int N, vector<vector<Cipher_elg>* >* C, vector<vector<Mod_p>* >* elements, char* proofs, ElGammal* enc_key) {
+void Functions::createDecProof(void* in_table, vector<vector<ZZ> >* secrets, int m, int n, int N, vector<vector<Cipher_elg>* >* C, vector<vector<Mod_p>* >* elements, char* proofs, ElGammal* enc_key) {
 	ZZ ord = H.get_ord();
 	atomic<std::int32_t> count(1);
 
@@ -219,11 +220,16 @@ void Functions::createDecProof(vector<vector<ZZ> >* secrets, int m, int n, int N
 	//#pragma omp parallel for collapse(2) num_threads(num_threads) if(parallel)
 	for (long i=0; i<m; i++){
 		for (long j = 0; j <n; j++){
-			ZZ ran_2 = RandomBnd(ord);
-			// david's change - don't uncomment!
-			//ran_2 = enc_key->get_sk();
 
-                        SchnorrProof pf = SchnorrProof(ran_2);
+			// david's change
+			ZZ ran_2 = enc_key->get_sk();
+			//ZZ ran_2 = RandomBnd(ord);
+
+		        CipherTable* ciphers = (CipherTable*)in_table;
+        		Cipher_elg cipher = ciphers->get_elg_cipher(i, j);
+			CurvePoint K = cipher.get_u();
+
+                        SchnorrProof pf = SchnorrProof(ran_2, K);
                         int k = SchnorrProof::bytesize * (i*n + j);
                         pf.serialize(&proofs[k]);
 		}

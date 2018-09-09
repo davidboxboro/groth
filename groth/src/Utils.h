@@ -45,7 +45,7 @@ void* get_cipher(void* cipher_table, int i, int j, void* len);
 // for verified input metadata to first chain
 // same as encrypt except returned pointer does not have ciphertext directly
 void* encrypt_with_proof(void** secrets, int secretLen, int arrayLen, int keyIndex);
-void* decrypt_proof(void** secrets, int secretLen, int arrayLen, int keyIndex);
+void* decrypt_proof(void* in_table, void** secrets, int secretLen, int arrayLen, int keyIndex);
 // encrypt_cipher_part(encrypt_with_proof(x)) = encrypt(x)
 void* encrypt_cipher_part(void* cipher_and_proof);
 // returns a proof and its size (written to proof_size)
@@ -54,7 +54,7 @@ void* encrypt_proof_part(void* cipher_and_proof, int* proof_size);
 // note: do not pass parts to other delete functions (will cause double free)
 void* delete_ciphers_with_proof(void* x);
 // verify a proof output by encrypt_proof_part and their corresponding ciphertexts
-int verify_encrypt(void* ciphers, int ciphers_size, void* proof, int proof_size);
+int verify_decrypt(int key_index, void* ciphers, int ciphers_size, void* proof, int proof_size);
 
 int rows(void* cipher_table);
 int cols(void* cipher_table);

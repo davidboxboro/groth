@@ -1,0 +1,4 @@
+[0;31m    linking object files[0m
+g++ -std=c++0x -fPIC -O2 -flto -shared -o libshuffle.so obj/Cipher_elg.o obj/CurvePoint.o obj/ElGammal.o obj/FakeZZ.o obj/func_pro.o obj/func_ver.o obj/Functions.o obj/G_q.o obj/Mod_p.o obj/multi_expo.o obj/Pedersen.o obj/Permutation.o obj/Prover_toom.o obj/SchnorrProof.o obj/Verifier_toom.o obj/CipherTable.o obj/Utils.o obj/sha256.o obj/NIZKProof.o obj/RemoteShuffler.o obj/VerifierClient.o -L/usr/local/lib/ -lntl -lgmp -lboost_system  -lboost_filesystem -lpthread -lboost_regex -lboost_thread -lboost_context -lgomp
+cp src/Utils.h ./Utils.h
+cp src/keys.h ./keys.h

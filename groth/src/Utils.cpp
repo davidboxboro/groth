@@ -149,10 +149,11 @@ struct ciphertexts_and_proofs {
 };
 
 // david's dec prf
-void* decrypt_proof(void** in_secrets, int secretLen, int arrayLen, int keyIndex) {
+void* decrypt_proof(void* in_table, void** in_secrets, int secretLen, int arrayLen, int keyIndex) {
 	init();
 	const unsigned char** secrects = (const unsigned char**) in_secrets;
 	ElGammal* elgammal = (ElGammal*)create_pub_key(keyIndex);
+	init_private_key(elgammal, keyIndex);
 	int num_cols = Functions::get_num_cols(m, arrayLen);
 	CipherTable* ret = new CipherTable();
 	vector<vector<ZZ> >* my_secrets = buildSecretsVector(secrects, secretLen, arrayLen);
@@ -160,7 +161,7 @@ void* decrypt_proof(void** in_secrets, int secretLen, int arrayLen, int keyIndex
         struct ciphertexts_and_proofs *s = (struct ciphertexts_and_proofs *) malloc(sizeof(struct ciphertexts_and_proofs));
         s->proofs_size = SchnorrProof::bytesize * m * num_cols;
         s->proofs = new char[s->proofs_size];
-	Functions::createDecProof(my_secrets, m, num_cols, arrayLen, ret->getCMatrix(), ret->getElementsMatrix(), s->proofs, elgammal);
+	Functions::createDecProof(in_table, my_secrets, m, num_cols, arrayLen, ret->getCMatrix(), ret->getElementsMatrix(), s->proofs, elgammal);
 
 	ret->set_dimentions(m, num_cols);
 	delete my_secrets;
@@ -208,8 +209,12 @@ void* delete_ciphers_with_proof(void* x) {
   free(s);
 }
 
-int verify_encrypt(void* ciphertexts, int ciphertexts_size, void* pfs, int proofs_size) {
+int verify_decrypt(int key_index, void* ciphertexts, int ciphertexts_size, void* pfs, int proofs_size) {
   init();
+  //david
+  ElGammal* elgammal = (ElGammal*) create_pub_key(key_index);
+  CurvePoint y = (elgammal->get_pk()).get_val();
+
   int num_elems = proofs_size / SchnorrProof::bytesize;
   int num_cols = num_elems / m;
   CipherTable *ct = (CipherTable*) parse_ciphers(ciphertexts, ciphertexts_size, 0); // TODO check this doesn't segfault
@@ -222,9 +227,10 @@ int verify_encrypt(void* ciphertexts, int ciphertexts_size, void* pfs, int proof
       char *proof = &proofs[(i*num_cols + j) * SchnorrProof::bytesize];
       SchnorrProof pf = SchnorrProof(proof);
       Cipher_elg c = ct->get_elg_cipher(i, j);
-      CurvePoint x = c.get_u();
+      CurvePoint K = c.get_u();
 
-      if (pf.verify(x) == 0) {
+      // david: changed from x to y
+      if (pf.verify_dec(K,y) == 0) {
         verified = 0;
       }
     }

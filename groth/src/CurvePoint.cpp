@@ -23,11 +23,18 @@ void ScalarFromZZ(edgamal_curve_scalar s, const ZZ& x) {
 // interface fns
 
 CurvePoint::CurvePoint() {
+
 #if USE_REAL_POINTS
   // TODO what should we do? leave uninitialized?
   // memset(P, 0, EDGAMAL_CURVE_POINT_SIZE);
 #else
   // pass
+#endif
+}
+
+CurvePoint::CurvePoint(ZZ num) {
+#if !USE_REAL_POINTS
+  zz = num;
 #endif
 }
 

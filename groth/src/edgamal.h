@@ -45,8 +45,8 @@ static inline void edgamal_scalar_multiply_basepoint(edgamal_curve_point *out, c
 
 // debug (subject to change)
 
-// static inline void edgamal_print_point(const edgamal_curve_point *p);
-// static inline void edgamal_print_point_packed(const edgamal_curve_point *p);
+//static inline void edgamal_print_point(const edgamal_curve_point *p);
+//static inline void edgamal_print_point_packed(const edgamal_curve_point *p);
 
 // internals (very subject to change)
 

@@ -131,7 +131,7 @@ func __decrypt_proven(all_ciphers_texts string, secrets []byte, secretlen int, k
 	}
 
 	ptr := (*unsafe.Pointer)(unsafe.Pointer(cargs))
-	cCipherProof := C.decrypt_proof(ptr, C.int(secretlen), C.int(num_secrets), C.int(keyIndex))
+	cCipherProof := C.decrypt_proof(cCiphers, ptr, C.int(secretlen), C.int(num_secrets), C.int(keyIndex))
 
 	var cLenProof C.int
 	cProof := C.encrypt_proof_part(cCipherProof, &cLenProof)
@@ -196,9 +196,9 @@ func __encrypt_proven(secrets []byte, secretlen int, keyIndex int) (ciphers stri
 	return cipherStr, elements, int(element_size), proof
 }
 
-func (g Groth) EncryptVerify(ciphers []byte, proof []byte) bool {
+func (g Groth) DecryptVerify(keyIndex int, ciphers []byte, proof []byte) bool {
 	runtime.GC()
-	cRet := C.verify_encrypt(unsafe.Pointer(&ciphers[0]), C.int(len(ciphers)), unsafe.Pointer(&proof[0]), C.int(len(proof)))
+	cRet := C.verify_decrypt(C.int(keyIndex), unsafe.Pointer(&ciphers[0]), C.int(len(ciphers)), unsafe.Pointer(&proof[0]), C.int(len(proof)))
 	// log.WithFields(log.Fields{"len(ciphers)": len(ciphers), "len(proof)": len(proof)}).Info("C:EncryptVerify")
 	return (int(cRet) == 1)
 }
@@ -483,12 +483,5 @@ func __verify(first_index int, last_index int, proof string, ciphers_in string, 
 	}
 	return false
 }
-
-// david's new prove/verify decryption functions
-func (g Groth) ProveDec(index int, ciphers_first_half []byte, chal []byte) (a []byte, b []byte, p []byte, z []byte) {
-	return nil, nil, nil, nil
-} 
-
-
 
 

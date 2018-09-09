@@ -16,6 +16,7 @@ NTL_CLIENT
 class CurvePoint {
  public:
   CurvePoint();
+  CurvePoint(ZZ num);
   CurvePoint(const CurvePoint &other);
   ~CurvePoint();
 
