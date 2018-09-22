@@ -24,7 +24,6 @@ ZZ SchnorrProof::fiat_shamir_a() {
 
   ZZ c;
   ZZFromBytes(c, hash, 32);
-  cout << c << endl;
 
   return c % ord;
 }
@@ -43,7 +42,6 @@ ZZ SchnorrProof::fiat_shamir_b() {
 
   ZZ c;
   ZZFromBytes(c, hash, 32);
-  cout << c << endl;
 
   return c % ord;
 }

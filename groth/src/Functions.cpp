@@ -217,16 +217,18 @@ void Functions::createDecProof(void* in_table, vector<vector<ZZ> >* secrets, int
 	}
 
 	//PARALLELIZE
-	//#pragma omp parallel for collapse(2) num_threads(num_threads) if(parallel)
+	#pragma omp parallel for collapse(2) num_threads(num_threads) if(parallel)
 	for (long i=0; i<m; i++){
 		for (long j = 0; j <n; j++){
-
 			// david's change
+		        CipherTable* ciphers = (CipherTable*)in_table;
+        		Cipher_elg cipher = ciphers->get_elg_cipher(i, j);
+			//Mod_p decrypt_res = enc_key->decrypt(cipher);
+			//elements->at(i)->at(j) = decrypt_res;
+
 			ZZ ran_2 = enc_key->get_sk();
 			//ZZ ran_2 = RandomBnd(ord);
 
-		        CipherTable* ciphers = (CipherTable*)in_table;
-        		Cipher_elg cipher = ciphers->get_elg_cipher(i, j);
 			CurvePoint K = cipher.get_u();
 
                         SchnorrProof pf = SchnorrProof(ran_2, K);

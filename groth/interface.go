@@ -13,7 +13,7 @@ import (
 	"unsafe"
 	//"fmt"
 
-	log "github.com/Sirupsen/logrus"
+	//log "github.com/Sirupsen/logrus"
 )
 
 // TODO this should be the actual return type for Shuffle()
@@ -38,7 +38,7 @@ func (c *shuffleRecords) insertRecord(p unsafe.Pointer) int {
 	assigned := c.next
 	c.next += 1
 
-	log.WithFields(log.Fields{"record": assigned}).Info("inserted record")
+	//log.WithFields(log.Fields{"record": assigned}).Info("inserted record")
 	c.pointers[assigned] = p
 	return assigned
 }
@@ -48,7 +48,7 @@ func (c *shuffleRecords) invalidateRecord(h int) (unsafe.Pointer, bool) {
 	defer c.mu.Unlock()
 
 	p, ok := c.pointers[h]
-	log.WithFields(log.Fields{"record": h, "success": ok}).Info("invalidated record")
+	//log.WithFields(log.Fields{"record": h, "success": ok}).Info("invalidated record")
 	if ok {
 		delete(c.pointers, h)
 	}
@@ -79,10 +79,12 @@ func (g Groth) DecryptProven(ciphers []byte, cipherlen int, keyIndex int) (group
 
 func __decrypt_proven(all_ciphers_texts string, secrets []byte, secretlen int, keyIndex int) (groupelts []string, proof []byte) {
 
+
 	elgammal := C.create_decryption_key(C.int(keyIndex))
 	defer C.delete_key(elgammal)
 
 	cCiphers := C.parse_ciphers(unsafe.Pointer(C.CString(all_ciphers_texts)), C.int(len(all_ciphers_texts)), elgammal)
+
 	rows := int(C.rows(cCiphers))
 	cols := int(C.cols(cCiphers))
 
@@ -114,6 +116,7 @@ func __decrypt_proven(all_ciphers_texts string, secrets []byte, secretlen int, k
 			break
 		}
 	}
+
 
 	//new stuff
 

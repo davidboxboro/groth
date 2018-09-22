@@ -221,7 +221,7 @@ int verify_decrypt(int key_index, void* ciphertexts, int ciphertexts_size, void*
   char *proofs = (char *) pfs;
 
   volatile int verified = 1;
-  //#pragma omp parallel for collapse(2) num_threads(num_threads) if(parallel)
+  #pragma omp parallel for collapse(2) num_threads(num_threads) if(parallel)
   for (int i = 0; i < m; i++) {
     for (int j = 0; j < num_cols; j++) {
       char *proof = &proofs[(i*num_cols + j) * SchnorrProof::bytesize];
