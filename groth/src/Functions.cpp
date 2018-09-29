@@ -46,7 +46,7 @@ Functions::~Functions() {}
 
 void Functions::read_config(const string& name, vector<long> & num, ZZ & genq){
 
-	cout << "num threads " << num_threads << endl;
+	//cout << "num threads " << num_threads << endl;
 	ifstream ist, ist1;
 	string line;
 	vector<string> lines;
